@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEAM UP - Games 1.4v</title>
+    <link rel="icon" href="https://th.bing.com/th/id/OIP.tQks6wsYgSNExVgFoEVfxAHaHa?w=178&h=180&c=7&r=0&o=5&pid=1.7" type="image/x-icon">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #121212 100%);
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        body.light-mode {
+            background-color: #f0f0f0;
+            color: #333333;
+            background-image: none;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1300px; /* Increased to accommodate sidebar */
+            margin: 0 auto;
+        }
+
+        .main-content {
+            flex: 3;
+            padding-right: 20px; /* Reduced padding to give more space */
+            background: linear-gradient(145deg, #1a1a1a, #252525);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 80vh;
+            position: relative;
+        }
+
+        body.light-mode .main-content {
+            background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+        }
+
+        .main-content.empty::after {
+            content: 'Select a category or search to view games.';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #888;
+            font-style: italic;
+            font-size: 1.2em;
+            text-shadow: 0 0 5px rgba(136, 136, 136, 0.3);
+        }
+
+        .sidebar {
+            flex: 1;
+            background: linear-gradient(145deg, #1e1e1e, #252525);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            max-width: 280px; /* Reduced width to prevent overflow */
+            margin-left: 20px;
+            overflow: auto; /* Added to handle content overflow */
+        }
+
+        body.light-mode .sidebar {
+            background: linear-gradient(145deg, #ffffff, #e0e0e0);
+            border: 1px solid #ccc;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .main-title {
+            color: #66c0f4;
+            font-size: 2.8em;
+            margin-bottom: 5px;
+            text-shadow: 0 0 15px rgba(102, 192, 244, 0.7);
+            letter-spacing: 2px;
+        }
+        
+        .steam-tm {
+            color: #66c0f4;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        
+        .search-container {
+            margin: 25px 0;
+            position: relative;
+            max-width: 90%; /* Added to limit search width */
+        }
+        
+        #gameSearch {
+            width: 100%;
+            max-width: 100%; /* Ensure it doesn't overflow */
+            padding: 12px 18px;
+            border-radius: 25px;
+            border: none;
+            background-color: #2a2a2a;
+            color: white;
+            font-size: 1em;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            padding-left: 45px;
+        }
+        
+        body.light-mode #gameSearch {
+            background-color: #ffffff;
+            color: #333333;
+            border: 1px solid #ccc;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 12px;
+            color: #66c0f4;
+        }
+        
+        .category {
+            margin: 20px 0;
+        }
+
+        .category-title, .all-title {
+            font-size: 1.6em;
+            color: #66c0f4;
+            cursor: pointer;
+            padding: 10px;
+            background: linear-gradient(145deg, #2a2a2a, #333333);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        body.light-mode .category-title, body.light-mode .all-title {
+            background: linear-gradient(145deg, #e0e0e0, #f0f0f0);
+        }
+
+        .category-title:hover, .all-title:hover {
+            background: linear-gradient(145deg, #333333, #3a3a3a);
+        }
+
+        body.light-mode .category-title:hover, body.light-mode .all-title:hover {
+            background: linear-gradient(145deg, #d0d0d0, #e0e0e0);
+        }
+
+        .category-title:after {
+            content: ' ▶';
+            position: absolute;
+            right: 10px;
+            transition: transform 0.3s;
+        }
+
+        .category-title.active:after {
+            transform: rotate(90deg);
+        }
+
+        .all-title.active {
+            background: linear-gradient(145deg, #333333, #3a3a3a);
+        }
+
+        body.light-mode .all-title.active {
+            background: linear-gradient(145deg, #d0d0d0, #e0e0e0);
+        }
+
+        .game-container {
+            background: linear-gradient(145deg, #1e1e1e, #252525);
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+            display: none;
+        }
+        
+        body.light-mode .game-container {
+            background: linear-gradient(145deg, #ffffff, #e0e0e0);
+            border: 1px solid #ccc;
+        }
+
+        .game-container.visible {
+            display: block;
+        }
+        
+        .game-container:hover {
+            transform: translateY(-5px);
+        }
+        
+        .game-title {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+        }
+        
+        .forest-title {
+            color: #4CAF50;
+        }
+        
+        .bigfoot-title {
+            color: #FF9800;
+        }
+
+        .universe-title {
+            color: #2196F3;
+        }
+
+        .scrap-title {
+            color: #FFB74D;
+        }
+        
+        .garrys-title {
+            color: #9C27B0;
+        }
+
+        .gta-title {
+            color: #FFFFFF;
+        }
+        
+        .game-description {
+            color: #b8b8b8;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        body.light-mode .game-description {
+            color: #555555;
+        }
+
+        .install-btn {
+            display: inline-block;
+            color: white;
+            padding: 14px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .forest-install {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+        }
+        
+        .bigfoot-install {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+        }
+
+        .universe-install {
+            background: linear-gradient(145deg, #2196F3, #1565C0);
+        }
+        
+        .scrap-install {
+            background: linear-gradient(135deg, #FFB74D, #FF9800);
+        }
+        
+        .garrys-install {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+        }
+
+        .gta-install {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            color: black;
+        }
+
+        .install-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .coming-soon {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            margin-top: 40px;
+            font-size: 1.2em;
+            text-shadow: 0 0 5px rgba(136, 136, 136, 0.3);
+        }
+        
+        body.light-mode .coming-soon {
+            color: #666;
+            text-shadow: none;
+        }
+
+        .game-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            border: 2px solid #333;
+        }
+        
+        body.light-mode .game-image {
+            border: 2px solid #ccc;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(102, 192, 244, 0), rgba(102, 192, 244, 0.75), rgba(102, 192, 244, 0));
+            margin: 20px 0;
+        }
+
+        .settings-container, .about-container {
+            background: transparent;
+            padding: 20px 0;
+        }
+
+        .settings-container h2, .about-container h2 {
+            color: #66c0f4;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .settings-option {
+            margin-bottom: 15px;
+        }
+
+        .settings-option label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .settings-option select, .settings-option button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            background: #2a2a2a;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        body.light-mode .settings-option select, body.light-mode .settings-option button {
+            background: #ffffff;
+            color: #333333;
+            border: 1px solid #ccc;
+        }
+
+        .settings-option button:hover, .install-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Confirmation Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #1e1e1e, #252525);
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        body.light-mode .modal-content {
+            background: linear-gradient(145deg, #ffffff, #e0e0e0);
+            border: 1px solid #ccc;
+        }
+
+        .modal-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #66c0f4;
+        }
+
+        .modal-message {
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        body.light-mode .modal-message {
+            color: #333333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .accept-btn {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+
+        .decline-btn {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="header">
+                <h1 class="main-title">STEAM UP</h1>
+                <div class="steam-tm">STEAM™</div>
+            </div>
+            
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="gameSearch" placeholder="Search games..." onkeyup="searchGames()">
+            </div>
+            
+            <hr>
+
+            <div class="category" id="survival-games">
+                <!-- The Forest -->
+                <div class="game-container" data-name="the forest" data-category="survival">
+                    <div class="game-title forest-title">THE FOREST</div>
+                    <img src="https://th.bing.com/th/id/OIP.Fr_v0Nfbexzo7McD0LNP3gHaEK?w=331&h=186&c=7&r=0&o=5&pid=1.7" alt="The Forest" class="game-image">
+                    <div class="game-description">
+                        Survival horror set in a mysterious forest where you must fight cannibalistic mutants while searching for your missing son.
+                        Build, explore, survive in this terrifying open world experience.
+                    </div>
+                    <button class="install-btn forest-install" onclick="showConfirmation('https://mega.nz/file/gk0XGTIL#6iN8z3muQxGZVcrNrXWbu7GMD3q7oAez0DFAWgo5cuA', 'THE FOREST')">INSTALL</button>
+                </div>
+                
+                <!-- Bigfoot -->
+                <div class="game-container" data-name="bigfoot" data-category="survival">
+                    <div class="game-title bigfoot-title">BIGFOOT</div>
+                    <img src="https://th.bing.com/th/id/OIP.eGEJHcexceHB6hNqAfO6mwHaEK?w=303&h=180&c=7&r=0&o=5&pid=1.7" alt="Bigfoot" class="game-image">
+                    <div class="game-description">
+                        Hunt the legendary creature in this intense multiplayer survival game. 
+                        Team up with friends or go solo in this thrilling monster-hunting adventure.
+                    </div>
+                    <button class="install-btn bigfoot-install" onclick="showConfirmation('https://drive.google.com/file/d/1blQTtrpx76k54N8sQAY_o0bVZee8soMY/view?usp=drive_link', 'BIGFOOT')">INSTALL</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="category" id="sandbox-games">
+                <!-- Universe Sandbox -->
+                <div class="game-container" data-name="universe sandbox" data-category="sandbox">
+                    <div class="game-title universe-title">UNIVERSE SANDBOX</div>
+                    <img src="https://th.bing.com/th/id/OIP.2y54kzG_rXk4jeuy53biMgHaEK?w=317&h=180&c=7&r=0&o=5&pid=1.7" alt="Universe Sandbox" class="game-image">
+                    <div class="game-description"> 
+                        Universe Sandbox is a space simulation game that lets you create, destroy, and explore galaxies, planets, and stars. You can simulate gravity, collisions, and other cosmic events in a realistic virtual universe.  
+                    </div>
+                    <button class="install-btn universe-install" onclick="showConfirmation('https://mega.nz/folder/7ZFAWAzA#jbUDcfp7TvccqhnfYZxc4w', 'UNIVERSE SANDBOX')">INSTALL</button>
+                </div>
+
+                <!-- Scrap Mechanic -->
+                <div class="game-container" data-name="scrap mechanic" data-category="sandbox">
+                    <div class="game-title scrap-title">SCRAP MECHANIC</div>
+                    <img src="https://th.bing.com/th/id/OIP.8t3chUgRWU3QK1pgGeUmYQHaEK?w=273&h=180&c=7&r=0&o=5&pid=1.7" alt="Scrap Mechanic" class="game-image">
+                    <div class="game-description"> 
+                        Scrap Mechanic is a game about building and creating machines from various parts, where players design their own vehicles and structures to survive and explore a challenging world.  
+                    </div>
+                    <button class="install-btn scrap-install" onclick="showConfirmation('https://mega.nz/file/PF1WXZqb#U_q5XzBxjyAfPR0vqN2RTiuUZBazv-JNaHHS-Vvfz88', 'SCRAP MECHANIC')">INSTALL</button>
+                </div>
+                
+                <!-- Garry's Mod -->
+                <div class="game-container" data-name="garry's mod" data-category="sandbox">
+                    <div class="game-title garrys-title">GARRY'S MOD</div>
+                    <img src="https://th.bing.com/th/id/OIP.7pR6SSse6gZ9n2XxKBZ7lAHaDt?w=316&h=174&c=7&r=0&o=5&pid=1.7" alt="Garry's Mod" class="game-image">
+                    <div class="game-description"> 
+                        Garry's Mod is a sandbox game where you can create, build, and modify anything—from maps to custom game modes. 
+                    </div>
+                    <button class="install-btn garrys-install" onclick="showConfirmation('https://mega.nz/file/fFtVFKoY#4ApTeJmgzBdlYsSE7FlDQ0UngYJhmsx7F_i-uYkXlro', 'GARRY\'S MOD')">INSTALL</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="category" id="action-games">
+                <!-- Grand Theft Auto: San Andreas -->
+                <div class="game-container" data-name="grand theft auto: san andreas" data-category="action">
+                    <div class="game-title gta-title">GRAND THEFT AUTO: SAN ANDREAS</div>
+                    <img src="https://th.bing.com/th/id/OIP.WbQ8o8kxLkefwSHiIsppCQHaEK?w=312&h=180&c=7&r=0&o=5&pid=1.7" alt="Grand Theft Auto: San Andreas" class="game-image">
+                    <div class="game-description"> 
+                        GTA: San Andreas is an action-adventure game following Carl, a gangster navigating a city filled with gangs, corruption, and violence.
+                    </div>
+                    <button class="install-btn gta-install" onclick="showConfirmation('h', 'GTA: SAN ANDREAS')">INSTALL</button>
+                </div>
+            </div>
+
+            <div class="coming-soon">More Games Coming Soon...</div>
+        </div>
+
+        <div class="sidebar">
+            <div class="settings-container">
+                <h2>Settings</h2>
+                <div class="settings-option">
+                    <label for="theme">Theme:</label>
+                    <select id="theme" onchange="changeTheme()">
+                        <option value="dark">Dark Mode</option>
+                        <option value="light">Light Mode</option>
+                    </select>
+                </div>
+                <div class="settings-option">
+                    <label for="fontSize">Font Size:</label>
+                    <select id="fontSize" onchange="changeFontSize()">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="about-container">
+                <h2>About STEAM UP</h2>
+                <p>
+                    STEAM UP is your ultimate destination for discovering and installing exciting games. Explore a variety of genres, from survival horrors to creative sandboxes and action-packed adventures. Our platform is designed to provide a seamless experience with a sleek interface and easy access to game downloads. Stay tuned for more games and features!
+                </p>
+            </div>
+
+            <hr>
+
+            <div class="category">
+                <div class="all-title" onclick="showAll()">All</div>
+            </div>
+            <div class="category">
+                <div class="category-title" onclick="toggleCategory('survival')">Survival</div>
+            </div>
+            <div class="category">
+                <div class="category-title" onclick="toggleCategory('sandbox')">Sandbox</div>
+            </div>
+            <div class="category">
+                <div class="category-title" onclick="toggleCategory('action')">Action</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Installation Confirmation</div>
+            <div class="modal-message">
+                By accepting, you agree to the installation of <span id="gameName"></span>. Please confirm your choice.<br><br>
+                Do you want to proceed with the installation?
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn accept-btn" onclick="proceedInstallation()">Accept</button>
+                <button class="modal-btn decline-btn" onclick="closeModal()">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDownloadLink = '';
+        
+        function searchGames() {
+            const input = document.getElementById('gameSearch');
+            const filter = input.value.toLowerCase();
+            const games = document.getElementsByClassName('game-container');
+            const categoryTitles = document.getElementsByClassName('category-title');
+            const allTitle = document.querySelector('.all-title');
+            const mainContent = document.querySelector('.main-content');
+
+            // Reset category and all button states
+            for (let i = 0; i < categoryTitles.length; i++) {
+                categoryTitles[i].classList.remove('active');
+            }
+            allTitle.classList.remove('active');
+
+            // Check if there are any visible games
+            let hasVisibleGames = false;
+            for (let i = 0; i < games.length; i++) {
+                const gameName = games[i].getAttribute('data-name');
+                if (gameName.includes(filter)) {
+                    games[i].classList.add('visible');
+                    games[i].classList.remove('hidden');
+                    hasVisibleGames = true;
+                } else {
+                    games[i].classList.remove('visible');
+                    games[i].classList.add('hidden');
+                }
+            }
+
+            // Toggle empty state based on search results
+            mainContent.classList.toggle('empty', !hasVisibleGames && !filter);
+
+            // Update coming soon message
+            const comingSoon = document.querySelector('.coming-soon');
+            if (!hasVisibleGames && filter) {
+                comingSoon.textContent = 'No games found. More Games Coming Soon...';
+            } else {
+                comingSoon.textContent = 'More Games Coming Soon...';
+            }
+        }
+        
+        function showConfirmation(downloadLink, gameName) {
+            currentDownloadLink = downloadLink;
+            document.getElementById('gameName').textContent = gameName;
+            document.getElementById('confirmationModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            currentDownloadLink = '';
+        }
+
+        function proceedInstallation() {
+            if (currentDownloadLink) {
+                window.open(currentDownloadLink, '_blank');
+            }
+            closeModal();
+        }
+
+        function toggleCategory(categoryId) {
+            const games = document.getElementsByClassName('game-container');
+            const categoryTitles = document.getElementsByClassName('category-title');
+            const allTitle = document.querySelector('.all-title');
+            const mainContent = document.querySelector('.main-content');
+
+            // Reset all button states
+            for (let i = 0; i < categoryTitles.length; i++) {
+                categoryTitles[i].classList.remove('active');
+            }
+            allTitle.classList.remove('active');
+
+            // Activate the clicked category
+            const clickedTitle = event.target;
+            clickedTitle.classList.add('active');
+
+            // Show games in the selected category
+            let hasVisibleGames = false;
+            for (let i = 0; i < games.length; i++) {
+                const gameCategory = games[i].getAttribute('data-category');
+                if (gameCategory === categoryId) {
+                    games[i].classList.add('visible');
+                    games[i].classList.remove('hidden');
+                    hasVisibleGames = true;
+                } else {
+                    games[i].classList.remove('visible');
+                    games[i].classList.add('hidden');
+                }
+            }
+
+            // Toggle empty state
+            mainContent.classList.toggle('empty', !hasVisibleGames);
+
+            // Clear search input
+            document.getElementById('gameSearch').value = '';
+            document.querySelector('.coming-soon').textContent = 'More Games Coming Soon...';
+        }
+
+        function showAll() {
+            const games = document.getElementsByClassName('game-container');
+            const categoryTitles = document.getElementsByClassName('category-title');
+            const allTitle = document.querySelector('.all-title');
+            const mainContent = document.querySelector('.main-content');
+
+            // Reset category button states
+            for (let i = 0; i < categoryTitles.length; i++) {
+                categoryTitles[i].classList.remove('active');
+            }
+            allTitle.classList.add('active');
+
+            // Show all games
+            let hasVisibleGames = false;
+            for (let i = 0; i < games.length; i++) {
+                games[i].classList.add('visible');
+                games[i].classList.remove('hidden');
+                hasVisibleGames = true;
+            }
+
+            // Toggle empty state
+            mainContent.classList.toggle('empty', !hasVisibleGames);
+
+            // Clear search input
+            document.getElementById('gameSearch').value = '';
+            document.querySelector('.coming-soon').textContent = 'More Games Coming Soon...';
+        }
+
+        function changeTheme() {
+            const theme = document.getElementById('theme').value;
+            document.body.classList.toggle('light-mode', theme === 'light');
+        }
+
+        function changeFontSize() {
+            const size = document.getElementById('fontSize').value;
+            document.body.style.fontSize = size === 'small' ? '14px' : size === 'medium' ? '16px' : '18px';
+        }
+
+        // Trigger "All" on page load to show initial content
+        window.onload = showAll;
+
+        console.log('%cSTEAM UP - Search Enabled', 'color: #66c0f4; font-size: 18px; font-weight: bold;');
+    </script>
+</body>
+</html>
